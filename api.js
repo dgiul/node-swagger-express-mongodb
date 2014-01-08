@@ -4,19 +4,20 @@
 var mongoose = require('mongoose'),
 	param = require("./Common/node/paramTypes.js"),
 	sw = require("./Common/node/swagger.js"),
+	colors = require('colors'),
 	swe = sw.errors,
 	config = require('./config'),
 	db = mongoose.connection;
 
-db.on('error', console.error);
+db.on('error', 'Database connection error'.red);
 db.on('connecting', function () {
-	console.log('Database connecting');
+	console.log('Database connecting'.cyan);
 });
 db.once('open', function() {
-	console.log('Database connection established');
+	console.log('Database connection established'.green);
 });
 db.on('reconnected', function () {
-	console.log('Database reconnected');
+	console.log('Database reconnected'.green);
 });
 
 mongoose.connect(config.db_url, {server: {auto_reconnect: true}});

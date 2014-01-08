@@ -7,6 +7,7 @@
 * @requires express 		Routing module
 * @requires url 			Allows the URL to be read
 * @requires fs 				Provides access to the servers file system
+* @requires colors			Lets the app show colored output in the console window
 * @requires swagger 		Generates the API docs dynamically
 * @requires express-extras 	Adds additional middleware options to express; used for throttling
 *
@@ -17,13 +18,17 @@
 * @beta
 */
 
-// Include express and swagger in the application.
-var express = require("express"),
-	url = require("url"),
-	fs = require('fs'),
-	swagger = require("./Common/node/swagger.js"),
-	extras = require('express-extras'),
-	api = require('./api.js');
+try {
+	var express = require("express"),
+		url = require("url"),
+		fs = require('fs'),
+		color = require('colors'),
+		swagger = require("./Common/node/swagger.js"),
+		extras = require('express-extras'),
+		api = require('./api.js');
+} catch(err) {
+	return console.error('\nCannot initialize API\nAt least one of the required modules seems to be missing\n'.red);
+};
 
 var app = express();
 app.use(express.json());
