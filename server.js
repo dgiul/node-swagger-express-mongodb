@@ -27,7 +27,8 @@ try {
 		extras = require('express-extras'),
 		api = require('./api.js');
 } catch(err) {
-	return console.error('\nCannot initialize API\nAt least one of the required modules seems to be missing\n'.red);
+	var msg = '\nCannot initialize API\n' + err + '\n';
+	return console.log(msg.red);
 };
 
 var app = express();
