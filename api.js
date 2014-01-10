@@ -9,7 +9,9 @@ var mongoose = require('mongoose'),
 	config = require('./config'),
 	db = mongoose.connection;
 
-db.on('error', 'Database connection error'.red);
+db.on('error', function() {
+	console.log('Database connection error'.red);
+});
 db.on('connecting', function () {
 	console.log('Database connecting'.cyan);
 });
