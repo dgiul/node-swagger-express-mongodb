@@ -25,15 +25,16 @@ try {
 		color = require('colors'),
 		swagger = require("./Common/node/swagger.js"),
 		extras = require('express-extras'),
-		api = require('./api.js');
+		api = require('./api.js'),
+		bodyParser = require('body-parser');
 } catch(err) {
 	var msg = '\nCannot initialize API\n' + err + '\n';
 	return console.log(msg.red);
 };
 
 var app = express();
-app.use(express.json());
-app.use(express.urlencoded());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
 // Setup throttling to keep users from abusing the API
 app.use(extras.throttle({
