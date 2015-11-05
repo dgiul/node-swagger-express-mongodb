@@ -27,6 +27,7 @@ var express = require("express"),
 	color = require('colors'),
 	extras = require('express-extras'),
 	api = require('./api.js'),
+	util = require('util'),
 	bodyParser = require('body-parser');
 
 var app = express(),
@@ -79,11 +80,9 @@ fs.readdir('models', function(err, list) {
 			file = 'models' + '/' + file;
 			fs.stat(file, function(err, stat) {
 				console.log('adding model def from ' + file);
-				// swagger.addModels( require('./' + file).def );
 				var outMod = require('./' + file).def;
 				for (var atr in outMod) {
-					console.log(atr);
-					models.models = outMod;
+					models.models[atr] = outMod[atr];
 				}
 			});
 		});
@@ -92,8 +91,6 @@ fs.readdir('models', function(err, list) {
 });
 	
 setTimeout(function(){
-	console.log('models');
-	console.log(models);
 	swagger.addModels(models);
 	
 }, 1000);
@@ -101,23 +98,23 @@ setTimeout(function(){
 // Add methods to swagger
 swagger
 	.addGet(api.getAllCarriers)
-	// .addGet(api.getAllManufacturers)
-	// .addGet(api.getAllPhones)
-	// .addGet(api.getCarrierById)
-	// .addGet(api.getManufacturerById)
-	// .addGet(api.getPhoneById)
+	.addGet(api.getAllManufacturers)
+	.addGet(api.getAllPhones)
+	.addGet(api.getCarrierById)
+	.addGet(api.getManufacturerById)
+	.addGet(api.getPhoneById)
 
-	// .addPost(api.addCarrier)
-	// .addPost(api.addManufacturer)
-	// .addPost(api.addPhone)
+	.addPost(api.addCarrier)
+	.addPost(api.addManufacturer)
+	.addPost(api.addPhone)
 
-	// .addPut(api.updateCarrier)
-	// .addPut(api.updateManufacturer)
-	// .addPut(api.updatePhone)
+	.addPut(api.updateCarrier)
+	.addPut(api.updateManufacturer)
+	.addPut(api.updatePhone)
 
-	// .addDelete(api.deleteCarrier)
-	// .addDelete(api.deleteManufacturer)
-	// .addDelete(api.deletePhone)
+	.addDelete(api.deleteCarrier)
+	.addDelete(api.deleteManufacturer)
+	.addDelete(api.deletePhone)
 
 /*swagger.configureDeclaration("carrier", {
 	description : "Operations about phone carriers",
@@ -150,7 +147,7 @@ swagger.setAuthorizations({
 
 // Configures the app's base path and api version.
 swagger.configureSwaggerPaths("", "api-docs", "")
-swagger.configure("http://s1.dev:8002", "1.0.0");
+swagger.configure("http://s1.dev:8005", "1.0.0");
 
 // Serve up swagger ui at /docs via static route
 var docs_handler = express.static(__dirname + '/swagger-ui/');
