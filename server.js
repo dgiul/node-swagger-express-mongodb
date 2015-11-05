@@ -25,12 +25,13 @@ var express = require("express"),
 	url = require("url"),
 	fs = require('fs'),
 	color = require('colors'),
-	swagger = require('swagger-node-express'),
 	extras = require('express-extras'),
 	api = require('./api.js'),
 	bodyParser = require('body-parser');
 
-var app = express();
+var app = express(),
+	swagger = require('swagger-node-express').createNew(app);
+	
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -45,7 +46,7 @@ app.use(extras.throttle({
 }));
 
 // Set the main handler in swagger to the express app
-swagger.setAppHandler(app);
+// swagger.setAppHandler(app);
 
 // This is a sample validator.  It simply says that for _all_ POST, DELETE, PUT
 // methods, the header `api_key` OR query param `api_key` must be equal
@@ -69,6 +70,7 @@ swagger.addValidator(
 
 // Find all of the model files in the 'models' folder and add the their definitions to swagger
 // so it can be displayed in the docs
+var models = {"models":{}};
 fs.readdir('models', function(err, list) {
 	if (err) return done(err);
 
@@ -77,33 +79,45 @@ fs.readdir('models', function(err, list) {
 			file = 'models' + '/' + file;
 			fs.stat(file, function(err, stat) {
 				console.log('adding model def from ' + file);
-				swagger.addModels( require('./' + file).def );
+				// swagger.addModels( require('./' + file).def );
+				var outMod = require('./' + file).def;
+				for (var atr in outMod) {
+					console.log(atr);
+					models.models = outMod;
+				}
 			});
 		});
 	};
+	
 });
-
+	
+setTimeout(function(){
+	console.log('models');
+	console.log(models);
+	swagger.addModels(models);
+	
+}, 1000);
 
 // Add methods to swagger
 swagger
 	.addGet(api.getAllCarriers)
-	.addGet(api.getAllManufacturers)
-	.addGet(api.getAllPhones)
-	.addGet(api.getCarrierById)
-	.addGet(api.getManufacturerById)
-	.addGet(api.getPhoneById)
+	// .addGet(api.getAllManufacturers)
+	// .addGet(api.getAllPhones)
+	// .addGet(api.getCarrierById)
+	// .addGet(api.getManufacturerById)
+	// .addGet(api.getPhoneById)
 
-	.addPost(api.addCarrier)
-	.addPost(api.addManufacturer)
-	.addPost(api.addPhone)
+	// .addPost(api.addCarrier)
+	// .addPost(api.addManufacturer)
+	// .addPost(api.addPhone)
 
-	.addPut(api.updateCarrier)
-	.addPut(api.updateManufacturer)
-	.addPut(api.updatePhone)
+	// .addPut(api.updateCarrier)
+	// .addPut(api.updateManufacturer)
+	// .addPut(api.updatePhone)
 
-	.addDelete(api.deleteCarrier)
-	.addDelete(api.deleteManufacturer)
-	.addDelete(api.deletePhone)
+	// .addDelete(api.deleteCarrier)
+	// .addDelete(api.deleteManufacturer)
+	// .addDelete(api.deletePhone)
 
 /*swagger.configureDeclaration("carrier", {
 	description : "Operations about phone carriers",
@@ -121,8 +135,8 @@ swagger.configureDeclaration("manufacturer", {
 swagger.setApiInfo({
 	title: "Swagger sample app for cell phone, manufacturer, and carrier data",
 	description: "This is a sample API for a small database of cell phones, manufacturers, and carriers. For this sample, you can use the api key \"1234\" to test the authorization filters",
-	termsOfServiceUrl: "http://helloreverb.com/terms/",
-	contact: "apiteam@wordnik.com",
+	// termsOfServiceUrl: "http://helloreverb.com/terms/",
+	// contact: "apiteam@wordnik.com",
 	//license: "Apache 2.0",
 	//licenseUrl: "http://www.apache.org/licenses/LICENSE-2.0.html"
 });
