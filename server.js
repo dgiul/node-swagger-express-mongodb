@@ -1,3 +1,5 @@
+/* global __dirname, done */
+
 /**
 * Sample API build using Swagger by Wordnik, based loosly on their 
 * swagger-node-express example at https://github.com/wordnik/swagger-node-express
@@ -18,19 +20,15 @@
 * @beta
 */
 
-try {
-	var express = require("express"),
-		url = require("url"),
-		fs = require('fs'),
-		color = require('colors'),
-		swagger = require("./Common/node/swagger.js"),
-		extras = require('express-extras'),
-		api = require('./api.js'),
-		bodyParser = require('body-parser');
-} catch(err) {
-	var msg = '\nCannot initialize API\n' + err + '\n';
-	return console.log(msg.red);
-};
+
+var express = require("express"),
+	url = require("url"),
+	fs = require('fs'),
+	color = require('colors'),
+	swagger = require('swagger-node-express'),
+	extras = require('express-extras'),
+	api = require('./api.js'),
+	bodyParser = require('body-parser');
 
 var app = express();
 app.use(bodyParser.json());
@@ -40,10 +38,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(extras.throttle({
 	urlCount: 100,
 	urlSec: 1,
-	holdTime: 10,
-	whitelist: {
-		'127.0.0.1': true
-	}
+	holdTime: 10
+	// whitelist: {
+	// 	'127.0.0.1': true
+	// }
 }));
 
 // Set the main handler in swagger to the express app
@@ -138,7 +136,7 @@ swagger.setAuthorizations({
 
 // Configures the app's base path and api version.
 swagger.configureSwaggerPaths("", "api-docs", "")
-swagger.configure("http://localhost:8002", "1.0.0");
+swagger.configure("http://s1.dev:8002", "1.0.0");
 
 // Serve up swagger ui at /docs via static route
 var docs_handler = express.static(__dirname + '/swagger-ui/');
@@ -154,4 +152,4 @@ app.get(/^\/docs(\/.*)?$/, function(req, res, next) {
 });
 
 // Start the server on port 8002
-app.listen(8002);
+app.listen(8005);

@@ -364,7 +364,7 @@ If you don't see those messages, double check the connection string to your data
 
 At this point your API should be running and you can start testing it out. Thankfully, swagger-ui makes it really easy to start playing around with your API by automatically generating your API docs, and it even gives you the ability to test each of your methods without having to write your own code.
 
-To see your API docs, just go to [http://localhost:8002/docs](http://localhost:8002/docs).
+To see your API docs, just go to [http://localhost:8002/docs](http://localhost:8005/docs).
 
 #### Known issues
 
