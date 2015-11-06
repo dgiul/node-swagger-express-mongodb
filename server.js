@@ -71,29 +71,17 @@ swagger.addValidator(
 
 // Find all of the model files in the 'models' folder and add the their definitions to swagger
 // so it can be displayed in the docs
-var models = {"models":{}};
-fs.readdir('models', function(err, list) {
-	if (err) return done(err);
-
-	if (list) {
-		list.forEach(function(file) {
-			file = 'models' + '/' + file;
-			fs.stat(file, function(err, stat) {
-				console.log('adding model def from ' + file);
-				var outMod = require('./' + file).def;
-				for (var atr in outMod) {
-					models.models[atr] = outMod[atr];
-				}
-			});
-		});
-	};
-	
+var models = {"models":{}},
+	modelPath = 'models';
+require("fs").readdirSync(modelPath).forEach(function(file) {
+    console.log('Load models from - ' + file);
+    var outMod = require('./' + modelPath + '/' + file).model;
+    for (var atr in outMod) {
+        models.models[atr] = outMod[atr];
+    }
 });
-	
-setTimeout(function(){
-	swagger.addModels(models);
-	
-}, 1000);
+swagger.addModels(models); 
+
 
 // Add methods to swagger
 swagger
