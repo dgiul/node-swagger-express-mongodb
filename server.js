@@ -1,3 +1,5 @@
+/* global __dirname, done */
+
 /**
 * Sample API build using Swagger by Wordnik, based loosly on their 
 * swagger-node-express example at https://github.com/wordnik/swagger-node-express
@@ -18,21 +20,19 @@
 * @beta
 */
 
-try {
-	var express = require("express"),
-		url = require("url"),
-		fs = require('fs'),
-		color = require('colors'),
-		swagger = require("./Common/node/swagger.js"),
-		extras = require('express-extras'),
-		api = require('./api.js'),
-		bodyParser = require('body-parser');
-} catch(err) {
-	var msg = '\nCannot initialize API\n' + err + '\n';
-	return console.log(msg.red);
-};
 
-var app = express();
+var express = require("express"),
+	url = require("url"),
+	fs = require('fs'),
+	color = require('colors'),
+	extras = require('express-extras'),
+	api = require('./api.js'),
+	util = require('util'),
+	bodyParser = require('body-parser');
+
+var app = express(),
+	swagger = require('swagger-node-express').createNew(app);
+	
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -40,14 +40,14 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(extras.throttle({
 	urlCount: 100,
 	urlSec: 1,
-	holdTime: 10,
-	whitelist: {
-		'127.0.0.1': true
-	}
+	holdTime: 10
+	// whitelist: {
+	// 	'127.0.0.1': true
+	// }
 }));
 
 // Set the main handler in swagger to the express app
-swagger.setAppHandler(app);
+// swagger.setAppHandler(app);
 
 // This is a sample validator.  It simply says that for _all_ POST, DELETE, PUT
 // methods, the header `api_key` OR query param `api_key` must be equal
@@ -71,19 +71,16 @@ swagger.addValidator(
 
 // Find all of the model files in the 'models' folder and add the their definitions to swagger
 // so it can be displayed in the docs
-fs.readdir('models', function(err, list) {
-	if (err) return done(err);
-
-	if (list) {
-		list.forEach(function(file) {
-			file = 'models' + '/' + file;
-			fs.stat(file, function(err, stat) {
-				console.log('adding model def from ' + file);
-				swagger.addModels( require('./' + file).def );
-			});
-		});
-	};
+var models = {"models":{}},
+	modelPath = 'models';
+require("fs").readdirSync(modelPath).forEach(function(file) {
+    console.log('Load models from - ' + file);
+    var outMod = require('./' + modelPath + '/' + file).model;
+    for (var atr in outMod) {
+        models.models[atr] = outMod[atr];
+    }
 });
+swagger.addModels(models); 
 
 
 // Add methods to swagger
@@ -123,8 +120,8 @@ swagger.configureDeclaration("manufacturer", {
 swagger.setApiInfo({
 	title: "Swagger sample app for cell phone, manufacturer, and carrier data",
 	description: "This is a sample API for a small database of cell phones, manufacturers, and carriers. For this sample, you can use the api key \"1234\" to test the authorization filters",
-	termsOfServiceUrl: "http://helloreverb.com/terms/",
-	contact: "apiteam@wordnik.com",
+	// termsOfServiceUrl: "http://helloreverb.com/terms/",
+	// contact: "apiteam@wordnik.com",
 	//license: "Apache 2.0",
 	//licenseUrl: "http://www.apache.org/licenses/LICENSE-2.0.html"
 });
@@ -138,7 +135,7 @@ swagger.setAuthorizations({
 
 // Configures the app's base path and api version.
 swagger.configureSwaggerPaths("", "api-docs", "")
-swagger.configure("http://localhost:8002", "1.0.0");
+swagger.configure("http://s1.dev:8005", "1.0.0");
 
 // Serve up swagger ui at /docs via static route
 var docs_handler = express.static(__dirname + '/swagger-ui/');
@@ -154,4 +151,4 @@ app.get(/^\/docs(\/.*)?$/, function(req, res, next) {
 });
 
 // Start the server on port 8002
-app.listen(8002);
+app.listen(8005);

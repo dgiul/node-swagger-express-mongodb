@@ -1,12 +1,14 @@
+/* global next */
 /**
 * All API methods and database connection info
 */
 var mongoose = require('mongoose'),
-	param = require("./Common/node/paramTypes.js"),
-	sw = require("./Common/node/swagger.js"),
+	// param = require("./Common/node/paramTypes.js"),
+	sw = require('swagger-node-express'),
 	colors = require('colors'),
 	swe = sw.errors,
 	config = require('./config'),
+	util = require('util'),
 	db = mongoose.connection;
 
 db.on('error', function() {
@@ -151,7 +153,7 @@ exports.getCarrierById = {
 		type : "Carrier",
 		nickname : "getCarrierById",
 		produces : ["application/json"],
-		parameters : [param.path("carrierId", "ID of the carrier to return", "string")],
+		parameters : [sw.pathParam("carrierId", "ID of the carrier to return", "string")],
 		responseMessages : [swe.invalid('id'), swe.notFound('carrier')]
 	},
 	'action': function (req,res) {
@@ -177,7 +179,7 @@ exports.getManufacturerById = {
 		type : "Manufacturer",
 		nickname : "getManufacturerById",
 		produces : ["application/json"],
-		parameters : [param.path("manufId", "ID of the manufacturer to return", "string")],
+		parameters : [sw.pathParam("manufId", "ID of the manufacturer to return", "string")],
 		responseMessages : [swe.invalid('id'), swe.notFound('manufacturer')]
 	},
 	'action': function (req,res) {
@@ -203,7 +205,7 @@ exports.getPhoneById = {
 		type : "Phone",
 		nickname : "getPhoneById",
 		produces : ["application/json"],
-		parameters : [param.path("phoneId", "ID of the phone to return", "string")],
+		parameters : [sw.pathParam("phoneId", "ID of the phone to return", "string")],
 		responseMessages : [swe.invalid('id'), swe.notFound('phone')]
 	},
 	'action': function (req,res) {
@@ -228,7 +230,14 @@ exports.addCarrier = {
 		notes : "Adds a new carrier",
 		summary : "Add a new carrier",
 		method: "POST",
-		parameters : [param.body("Carrier name", "JSON object representing the carrier to add", "Carrier")],
+		parameters : [{
+			// sw.pathParam("Carrier name", "JSON object representing the carrier to add", "Carrier")
+			name: "Carrier name",
+			description: "JSON object representing the carrier to add",
+			required: true,
+			type: "Carrier",
+			paramType: "body"
+		}],
 		responseMessages : [swe.invalid('input')],
 		nickname : "addCarrier"
 	},
@@ -257,7 +266,15 @@ exports.addManufacturer = {
 		notes : "Adds a new manufacturer",
 		summary : "Add a new manufacturer",
 		method: "POST",
-		parameters : [param.body("Manufacturer name", "JSON object representing the manufacturer to add", "Manufacturer")],
+		type: "Manufacturer",
+		parameters : [{
+			name: "Manufacturer",
+			description: "JSON object representing the Manufacturer to add",
+			required: true,
+			type: "Manufacturer",
+			paramType: "body"
+		}],
+			
 		responseMessages : [swe.invalid('input')],
 		nickname : "addManufacturer"
 	},
@@ -280,13 +297,20 @@ exports.addManufacturer = {
 	}
 };
 
+// console.log(Carrier.def);
 exports.addPhone = {
 	'spec': {
 		path : "/phone",
 		notes : "Adds a new phone",
 		summary : "Add a new phone",
 		method: "POST",
-		parameters : [param.body("Phone name", "JSON object representing the phone to add", "Phone")],
+		parameters : [{
+			name: "Phone",
+			description: "JSON object representing the Phone to add",
+			required: true,
+			type: "Phone",
+			paramType: "body"
+		}],
 		responseMessages : [swe.invalid('input')],
 		nickname : "addPhone"
 	},
@@ -314,17 +338,24 @@ exports.addPhone = {
 */
 exports.updateCarrier = {
 	'spec': {
-		path : "/carrier",
+		path : "/carrier/{id}",
 		notes : "Update an existing carrier",
 		summary : "Update an existing carrier",
 		method: "PUT",
-		//parameters : [param.body("Carrier ID", "Carrier ID to update", "Carrier"), param.body("Carrier name", "New carrier name", "Carrier")],
+		//parameters : [sw.pathParam("Carrier ID", "Carrier ID to update", "Carrier"), sw.pathParam("Carrier name", "New carrier name", "Carrier")],
 		parameters : [
-			param.query("id", "Carrier ID to update", "string", true),
-			param.query("name", "New carrier name to use", "string", true)
+			sw.pathParam("id", "Carrier ID to update", "string"),
+			{
+                name: "name",
+                description: "New carrier name to use",
+                required: true,
+                type: "string",
+                paramType: "body",
+				produces : ["application/json", "string"],
+            },
 		],
 		responseMessages : [swe.invalid('input')],
-		type : "Carrier",
+		type : "string",
 		nickname : "updateCarrier"
 	},
 	'action': function(req, res, next) {
@@ -335,6 +366,7 @@ exports.updateCarrier = {
 			throw swe.invalid('carrier name');
 		} else {
 			// Update an existing document (database will be updated automatically)
+			console.log(query.name);
 			Carrier.model.update({ _id : query.id }, { name: query.name }, function (err, numRowsAffected, raw) {
 				if (err) return res.send(500, { error: err });
 
@@ -350,13 +382,19 @@ exports.updateCarrier = {
 
 exports.updateManufacturer = {
 	'spec': {
-		path : "/manufacturer",
+		path : "/manufacturer/{id}",
 		notes : "Update an existing manufacturer",
 		summary : "Update an existing manufacturer",
 		method: "PUT",
 		parameters : [
-			param.query("id", "Manufacturer ID to update", "string", true),
-			param.query("name", "New manufacturer name to use", "string", true)
+			sw.pathParam("id", "Manufacturer ID to update", "string"),
+			{
+                name: "name",
+                description: "New manufacturer name to use",
+                required: true,
+                type: "string",
+                paramType: "body"
+            }
 		],
 		responseMessages : [swe.invalid('input')],
 		type : "Manufacturer",
@@ -385,13 +423,19 @@ exports.updateManufacturer = {
 
 exports.updatePhone = {
 	'spec': {
-		path : "/phone",
+		path : "/phone/{id}",
 		notes : "Update an existing phone",
 		summary : "Update an existing phone",
 		method: "PUT",
 		parameters : [
-			param.query("id", "Phone ID to update", "string", true),
-			param.query("name", "New phone name to use", "string", true)
+			sw.pathParam("id", "Phone ID to update", "string"),
+			{
+                name: "name",
+                description: "New Phone name to use",
+                required: true,
+                type: "string",
+                paramType: "body"
+            }
 		],
 		responseMessages : [swe.invalid('input')],
 		type : "Phone",
@@ -423,84 +467,64 @@ exports.updatePhone = {
 */
 exports.deleteCarrier = {
 	'spec': {
-		path : "/carrier",
+		path : "/carrier/{carrierId}",
 		notes : "Delete an existing carrier",
 		summary : "Delete an existing carrier",
 		method: "DELETE",
-		parameters : [
-			param.query("id", "Carrier ID to delete", "string", true)
-		],
+		parameters : [sw.pathParam("carrierId", "Carrier ID to delete", "string")],
 		responseMessages : [swe.invalid('input')],
-		type : "Carrier",
-		nickname : "updateCarrier"
+		// type : "Carrier",
+		nickname : "deleteCarrier"
 	},
-	'action': function(req, res, next) {
-		var query = req.query;
-		if(!query || !query.id) {
-			throw swe.invalid('carrier id');
-		} else {
-			// Delete an existing document (database will be updated automatically)
-			Carrier.model.remove({ _id : query.id }, function (err) {
-				if (err) return res.send(500, { error: err });
+	'action': function(req, res) {
+		Carrier.model.remove({ _id : req.params.carrierId }, function (err) {
+			if (err) return res.send(500, { error: err });
 
-				res.send(200, { 'msg' : 'ok' });
-			});
-		}
+			res.status(200).send({ 'msg' : 'ok' });
+		});
 	}
 };
 
 exports.deleteManufacturer = {
 	'spec': {
-		path : "/manufacturer",
+		path : "/manufacturer/{id}",
 		notes : "Delete an existing manufacturer",
 		summary : "Delete an existing manufacturer",
 		method: "DELETE",
 		parameters : [
-			param.query("id", "Manufacturer ID to delete", "string", true)
+			sw.pathParam("id", "Manufacturer ID to Manufacturer", "string"),
 		],
 		responseMessages : [swe.invalid('input')],
-		type : "Manufacturer",
+		// type : "Manufacturer",
 		nickname : "updateManufacturer"
 	},
 	'action': function(req, res, next) {
-		var query = req.query;
-		if(!query || !query.id) {
-			throw swe.invalid('manufacturer id');
-		} else {
-			// Delete an existing document (database will be updated automatically)
-			Carrier.model.remove({ _id : query.id }, function (err) {
-				if (err) return res.send(500, { error: err });
+		Manufacturer.model.remove({ _id : req.params.id }, function (err) {
+			if (err) return res.send(500, { error: err });
 
-				res.send(200, { 'msg' : 'ok' });
-			});
-		}
+			res.status(200).send({ 'msg' : 'ok' });
+		});
 	}
 };
 
 exports.deletePhone = {
 	'spec': {
-		path : "/phone",
+		path : "/phone/{id}",
 		notes : "Delete an existing phone",
 		summary : "Delete an existing phone",
 		method: "DELETE",
 		parameters : [
-			param.query("id", "Phone ID to delete", "string", true)
+			sw.pathParam("id", "Phone ID to delete", "string")
 		],
 		responseMessages : [swe.invalid('input')],
-		type : "Phone",
-		nickname : "updatePhone"
+		// type : "Phone",
+		nickname : "deletePhone"
 	},
 	'action': function(req, res, next) {
-		var query = req.query;
-		if(!query || !query.id) {
-			throw swe.invalid('phone id');
-		} else {
-			// Delete an existing document (database will be updated automatically)
-			Phone.model.remove({ _id : query.id }, function (err) {
-				if (err) return res.send(500, { error: err });
+		Phone.model.remove({ _id : req.params.id }, function (err) {
+			if (err) return res.send(500, { error: err });
 
-				res.send(200, { 'msg' : 'ok' });
-			});
-		}
+			res.status(200).send({ 'msg' : 'ok' });
+		});
 	}
 };
